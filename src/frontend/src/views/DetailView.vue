@@ -1,140 +1,159 @@
 <template>
-  <div class="about">
+  <div class="detail">
     <HeaderLayout />
     <SubHeader />
 
     <div class="full-container">
-        <div class="left-content">
-          <div class="board-content-wrap">
-            <div class="board-content-header">
-              <div class="board-title-wrap">
-                <div class="label-title-wrap">
-                  <div class="board-label">{{ boardLabel }}</div>
-                  <strong class="title">{{ title }}</strong>
-                </div>
-
-                <div class="msg-notice-wrap">
-                  <span>쪽지</span> 
-                  <span>신고</span>
-                </div>
+      <div class="left-content">
+        <div class="board-content-wrap">
+          <div class="board-content-header">
+            <div class="board-title-wrap">
+              <div class="label-title-wrap">
+                <div class="board-label">{{ post.board.boardName }}</div>
+                <strong class="title">{{ post.title }}</strong>
               </div>
-              
-              <div class="writer-date-wrap">
-                <span>{{ writer }}</span>
-                <span>{{ date }}</span>
+    
+              <div class="msg-notice-wrap">
+                <span>쪽지</span> 
+                <span>신고</span>
               </div>
             </div>
-
-            <div class="board-content-body">
-              <div class="board-content">{{ content }}</div>
-
-              <div class="hashtags">
-                <div class="hashtag" v-for="(tag, index) in hashtags" :key="index">{{ tag }}</div>
-              </div>
-
-              
+            
+            <div class="writer-date-wrap">
+              <span>{{ post.author.nickname }}</span>
+              <span style="margin-left: 4px;">{{ post.createdAt }}</span>
+            </div>
+          </div>
+    
+          <div class="board-content-body">
+            <div class="board-content">{{ post.content }}</div>
+    
+            <div class="hashtags">
+              <div class="hashtag" v-for="(tag, index) in post.hashtags" :key="index">#{{ tag.hashtag }}</div>
+            </div>
+          </div>
+        </div>
+    
+        <div class="other-comment-wrap">
+          <div class="activity-wrap" :class="{ 'no-margin' : showComment }">
+            <div class="comment-btn">
+              <img style="width: 12px; height: 12px;" src="@/assets/images/fi-rr-comment.png"/>
+              댓글 {{ post.commentCnt }}
+              <div class="hr">|</div> 
+              <span class="angle-icon" @click="toggleComment">
+                <img 
+                  style="margin-top: 3px; width: 16px; height: 16px;" 
+                  :src="showComment ? angleUpImg : angleDownImg"
+                />
+              </span>
+            </div>
+            <div class="like-btn" @click="changeLikeImg()">
+              <img
+                style="width: 14px; height: 14px;"
+                :src="post.liked ? likeImgActive : likeImg"
+              />
+              공감 {{ post.likes }}
+            </div>
+            <div class="scrap-btn" @click="changeScrapImg()">
+              <img
+                style="width: 14px; height: 14px;"
+                :src="post.scraped ? scrapImgActive : scrapImg"
+              />
+              스크랩 {{ post.scraps }}
             </div>
           </div>
 
-          <div class="other-comment-wrap">
-              <div class="activity-wrap" :class="{ 'no-margin' : showComment.open }">
-                <div class="comment-btn">
-                  <img style="width: 12px; height: 12px;" src="@/assets/images/fi-rr-comment.png"/>
-                  댓글 {{ commentCount }}
-                  <div class="hr">|</div> 
-                  <span class="angle-icon" @click="toggleComment">
-                    <img style="width: 16px; height: 16px;" v-bind:src="angleIconSrc" />
-                  </span>
-                </div>
-                <div class="like-btn" @click="changeLikeImg()">
-                  <img style="width: 14px; height: 14px;" :src="require(`@/assets/images/${likeImgName}.png`)"/>
-                  공감 {{ likeCount }}
-                </div>
-                <div class="scrap-btn" @click="changeScrapImg()">
-                  <img style="width: 14px; height: 14px;" :src="require(`@/assets/images/${scrapImgName}.png`)"/>
-                  스크랩 {{ scrapCount }}
-                </div>
-              </div>
-
-              <div class="comment-wrap" v-if="showComment.open">
-              <div class="comment-box" v-for="(comment, index) in comments" :key="index">
-                <div class="comment-box-inner">
-                  <div class="comment-header">
-                    <div class="writer-date-wrap">
-                      <span>{{ comment.writer }}</span>
-                      <span>{{ comment.commentDate }}</span>
-                    </div>
-
-                    <div class="msg-notice-wrap">
-                      <span>쪽지</span> 
-                      <span>신고</span>
-                    </div>
+          <div class="comment-wrap" v-if="showComment">
+            <div class="comment-box" v-for="(comment, commentIndex) in comments" :key="commentIndex">
+              <div class="comment-box-inner">
+                <div class="comment-header">
+                  <div class="writer-date-wrap">
+                    <span>{{ comment.writer.nickname }}</span>
+                    <span style="margin-left: 4px;">{{ comment.createdAt}}</span>
                   </div>
 
-                  <div class="comment-body">
-                    <div class="comment">
-                      {{ comment.commentContent }}
-                    </div>
+                  <div class="msg-notice-wrap">
+                    <span>쪽지</span> 
+                    <span>신고</span>
+                  </div>
+                </div>
 
-                    <div class="activity-wrap">
-                       <div class="comment-btn" @click="toggleReply(index)">
-                        <img style="width: 12px; height: 12px;" src="@/assets/images/fi-rr-comment.png"/>
-                        대댓글 달기 {{ comment.commentCount }}
-                      </div>
-                      <div class="like-btn">
-                        <img style="width: 14px; height: 14px;" src="@/assets/images/fi-rr-thumbs-up.png"/>
-                        공감하기 {{ comment.likeCount }}
-                      </div>
+                <div class="comment-body">
+                  <div class="comment">
+                    {{ comment.content }}
+                  </div>
+
+                  <div class="activity-wrap">
+                    <div class="comment-btn" @click="toggleReply(commentIndex)">
+                      <img style="width: 12px; height: 12px;" src="@/assets/images/fi-rr-comment.png"/>
+                      대댓글 달기 {{ comment.childCnt }}
+                    </div>
+                    <div class="like-btn" @click="toggleLike(comment.commentId)">
+                      <img
+                        style="width: 14px; height: 14px;"
+                        :src="comment.likeStatus ? likeImgActive : likeImg"
+                      />
+                      공감하기 {{ comment.likes }}
                     </div>
                   </div>
                 </div>
-                  
-                <div class="comment-box on reply" v-if="comment.showReply">
-                    <div class="comment-box-inner">
-                      <img style="width: 14px; height: 14px;" src="@/assets/images/fi-rr-chat-arrow-down.png"/>
-                      <div class="my-comment-wrap">
-                        <textarea class="my-comment" placeholder="댓글을 입력하세요."></textarea>
-                        <div class="my-comment-btn-wrap">
-                          <div class="file-anonymous-wrap">
-                            <div class="anonymous">
-                              <label>
-                                <input type="checkbox"/>
-                                <span>익명</span>
-                              </label>
-                            </div>
-                          </div>
-                          <button class="submit-btn">등록</button>
-                        </div>
-                      </div>
-                    </div>
-                </div>
               </div>
 
-              <div class="comment-box on" v-for="(reply, index) in replies" :key="index">
+              <div class="comment-box on reply" v-if="comment.showReply && comment.showReply !== 'undefined'">
                 <div class="comment-box-inner">
                   <img style="width: 14px; height: 14px;" src="@/assets/images/fi-rr-chat-arrow-down.png"/>
-                  <div class="detail-info">
-                    <div class="comment-header">
-                      <div class="writer-date-wrap">
-                        <span>{{ reply.writer }}</span>
-                        <span>{{ reply.replyDate }}</span>
+                  <div class="my-comment-wrap">
+                    <textarea v-model="replyData.reply" class="my-comment" placeholder="댓글을 입력하세요."></textarea>
+                    <div class="my-comment-btn-wrap">
+                      <div class="file-anonymous-wrap">
+                        <div class="anonymous">
+                           <div class="checkbox-container">
+                            <input
+                              type="checkbox"
+                              :id="'checkbox-' + commentIndex"
+                              v-model="replyData.isReplyAnonymous"
+                            />
+                            <label :for="'checkbox-' + commentIndex">
+                              <span class="checkbox-icon"></span>
+                                익명
+                            </label>
+                          </div>     
+                        </div>
                       </div>
-
-                      <div class="msg-notice-wrap">
-                        <span>쪽지</span> 
-                        <span>신고</span>
-                      </div>
+                      <button class="submit-btn" @click="createComment(postId, comment.commentId)">등록</button>
                     </div>
-
-                    <div class="comment-body">
-                      <div class="comment">
-                        {{ reply.replyContent }}
+                  </div>
+                </div>
+              </div>
+              <div class="comment-box on" v-for="(reply, replyIndex) in comment.childs" :key="replyIndex">
+                  <div class="comment-box-inner">
+                    <img style="width: 14px; height: 14px;" src="@/assets/images/fi-rr-chat-arrow-down.png"/>
+                    <div class="detail-info">
+                      <div class="comment-header">
+                        <div class="writer-date-wrap">
+                          <span>{{ reply.writer.nickname }}</span>
+                          <span style="margin-left: 4px;">{{ reply.createdAt }}</span>
+                        </div>
+    
+                        <div class="msg-notice-wrap">
+                          <span>쪽지</span> 
+                          <span>신고</span>
+                        </div>
                       </div>
-
-                      <div class="activity-wrap">
-                        <div class="like-btn">
-                          <img style="width: 14px; height: 14px;" src="@/assets/images/fi-rr-thumbs-up.png"/>
-                          공감하기 {{ reply.likeCount }}
+    
+                      <div class="comment-body">
+                        <div class="comment">
+                          {{ reply.content }}
+                        </div>
+    
+                        <div class="activity-wrap">
+                          <div class="like-btn" @click="toggleReplyLike(reply.commentId)">
+                            <img
+                              style="width: 14px; height: 14px;"
+                              :src="reply.likeStatus ? likeImgActive : likeImg"
+                            />
+                            공감하기 {{ reply.likes }}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -142,36 +161,48 @@
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="my-comment-wrap">
-            <textarea class="my-comment" placeholder="댓글을 입력하세요."></textarea>
-            <div class="my-comment-btn-wrap">
-              <div class="file-anonymous-wrap">
-                <div class="anonymous">
-                  <label>
-                    <input type="checkbox"/>
-                    <span>익명</span>
-                  </label>
-                </div>
-              </div>
-              <button class="submit-btn">등록</button>
-            </div>
-          </div>
-
-          <button type="button" class="list-btn">목록보기</button>
         </div>
+
+        <div class="my-comment-wrap">
+          <textarea v-model="commentData.myComment" class="my-comment" placeholder="댓글을 입력하세요."></textarea>
+          <div class="my-comment-btn-wrap">
+            <div class="file-anonymous-wrap">
+              <div class="anonymous">
+                <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    :id="'checkbox2-' + commentIndex"
+                    v-model="commentData.isCommentAnonymous"
+                  />
+                  <label :for="'checkbox2-' + commentIndex">
+                    <span class="checkbox-icon"></span>
+                      익명
+                  </label>
+                </div>   
+              </div>
+            </div>
+            <button class="submit-btn" @click="createComment(postId)">등록</button>
+          </div>
+        </div>
+
+        <a :href="'/list?boardId=' + boardId">
+          <button type="button" class="list-btn">목록보기</button>
+        </a>
       </div>
-      <FooterLayout/>
+    </div>
+    <FooterLayout/>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 import HeaderLayout from "@/components/layout/HeaderLayout.vue";
 import SubHeader from "@/components/layout/SubHeader.vue";
 import FooterLayout from "@/components/layout/FooterLayout.vue";
+
 export default {
-  name: 'AboutView',
+  name: 'DetailView',
   components: {
     HeaderLayout,
     SubHeader,
@@ -179,99 +210,231 @@ export default {
   },
   data() {
     return {
-      showComment: {
-        open: 'true'
+      headers: [],
+      link: '',
+      likeImg: require('@/assets/images/fi-rr-thumbs-up.png'),
+      likeImgActive: require('@/assets/images/fi-sr-thumbs-up.png'),
+      scrapImg: require('@/assets/images/fi-rr-bookmark.png'),
+      scrapImgActive: require('@/assets/images/fi-sr-bookmark.png'),
+      angleUpImg: require('@/assets/images/fi-rr-angle-small-up.png'),
+      angleDownImg: require('@/assets/images/fi-rr-angle-small-down.png'),
+      postId: this.$route.query.postId,
+      showComment: true,
+      boardId: '',
+      post: [],
+      comments: [],
+      replies: [],
+      commentData: {
+        myComment: '',
+        isCommentAnonymous: false
       },
-      boardLabel: '자유 게시판',
-      title: '벌써 8월 말이라닝..',
-      writer: '작성자',
-      date: '2023-08-25',
-      content: `이미 학교에서 국문법을 우리는 배웠다. 국문법은 왜 필요할까? 그 때나 지금이나 잘 이해하지 못해 국문법을 어렵게 생각한 것이다. 무엇이든 알고 나면 쉽다. 모르는 것은 언제나 어렵다고 생각하기 때문에 어려운 것이다.
-
-이제는 누구나 글을 쓰거나 써야하는 시대가 되었다. 그 국문법 즉 문법이 문제다. 짧은 글이든 긴 글이든 문장은 문법에 맞게 써야한다. 그래야 전달하고자 하는 의미를 독자가 쉽게 이해할 수 있기 때문이다. 그래서 우리는 무엇을 배우든 왜 내가 이것을 배우는가? 왜 써야 하는가? 그 필요성을 먼저 이해하는 태도가 필요하다.
-
- 
-
- 다음은 한글 문장의 기본 형식이다. 오늘은 그 두 번째를 살펴보려한다.
-
- 
-
-주어+서술어 : 개가 짓는다.
-
-주어+목적어+서술어 : 개가 밥을 먹는다.
-
-주어+ 보어+서술어 : 이것은 개가 아니다.
-
-주어+목적어+보어+서술어 : 개는 사람을 주인으로 생각한다. 『인터넷 글쓰기 의 달인』 최기호·김미형·이영숙·강옥희·임소영·김슬웅 지음, 세종서적, 28
-
- 
-
-  주어 + 목적어 + 서술어 : 개가 밥을 먹는다.
-
- 
-
-  한글 문장의 기본 2형식은 1형식의 주어+서술어, 즉 서술어 앞에 목적어가 추가 되는 것이다. 다시 말해 개가(주어) 밥을(목적어) 먹는다(서술어). 가 되는 것이다. 목적어의 목적격 조사의 사전적 의미를 보자. 목적격 조사란 “체언 뒤에 붙어, 그 체언을 주어의 동작이나 작용의 목적물이 되게 하는 조사로 ‘를 · 을’이 있다. 체언 뒤에 ‘를 · 을’이 붙으면 목적어(문장에서 동사의 동작의 대상이 되는 말. 곧 타동사의 목적이 되는 말)가 된다는 것을 기억하자. 다음 예문을 보자.`,
-      hashtags: ['# 가을', '# 스무살', '# 내년 반오십'],
-      commentCount: 20,
-      likeCount: 10,
-      scrapCount: 10,
-      scrapImgName: 'fi-rr-bookmark',
-      likeImgName: 'fi-rr-thumbs-up',
-      comments: [
-        {
-          writer: '작성자',
-          commentDate: '2023-08-25',
-          commentContent: '시간이 정말 빨리 가는 것 같아여 속은 고딩인뎅',
-          commentCount: 10,
-          likeCount: 14
-        },
-        {
-          writer: '작성자',
-          commentDate: '2023-08-25',
-          commentContent: '시간이 정말 빨리 가는 것 같아여 속은 고딩인뎅',
-          commentCount: 10,
-          likeCount: 14
-        },
-      ],
-      replies: [
-        {
-          writer: '작성자',
-          replyDate: '2023-08-26',
-          replyContent: '씻기 귀찮넹',
-          likeCount: 3
-        }
-      ]
+      replyData: {
+        reply: '',
+        isReplyAnonymous: false
+      }
     };
   },
-   computed: {
-      angleIconSrc() {
-        return this.showComment.open
-          ? require('@/assets/images/fi-rr-angle-small-up.png')
-          : require('@/assets/images/fi-rr-angle-small-down.png');
-      },
+  created() {
+    this.setupHeaders();
+    this.getPostDetail();
+    this.getCommentsByPost();
+  },
+  methods: {
+    setupHeaders() { /* http 요청 헤더를 설정하고 엔드포인트에 대한 인증 토큰을 포함 */
+      const token = localStorage.getItem('token');
+      
+      this.link = 'http://' + window.location.host;
+      this.headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
     },
-    methods: {
-      toggleComment() {
-        this.showComment.open = !this.showComment.open;
-      },
-       toggleReply(index) {
-        this.comments[index].showReply = !this.comments[index].showReply;
-      },
-      changeScrapImg() {
-        if (this.scrapImgName === 'fi-rr-bookmark') {
-            this.scrapImgName = 'fi-sr-bookmark';
-        } else {
-            this.scrapImgName = 'fi-rr-bookmark';
-        }
-      },
-      changeLikeImg() {
-        if (this.likeImgName === 'fi-rr-thumbs-up') {
-            this.likeImgName = 'fi-sr-thumbs-up';
-        } else {
-            this.likeImgName = 'fi-rr-thumbs-up';
-        }
+    changeEngagementAction(refId, actionType) { /* 공감, 스크랩과 같은 상호 작용을 변경 */
+      /*
+        refId와 actionType의 사용 예시:
+        
+        1. 게시물 스크랩: 
+        - refId: postId
+        - actionType: scrap
+        
+        2. 댓글 공감:
+        - refId: commentId
+        - actionType: clike
+        
+        3. 게시물 공감:
+        - refId: postId
+        - actionType: plike
+      */
+      
+      const data = {
+        "refId": refId,
+        "actionType": actionType
+      };
+    
+      axios
+      .post(`/api/post/changeEngagementAction`, data, { headers: this.headers })
+      .then((response) => {
+        console.log(response.data);
+        
+        /* 현재 페이지를 리로드 */
+        this.$router.go();
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    },
+    toggleLike(commentId) { /* 댓글 공감 상태 변경 */
+      /* commentId와 일치하는 댓글을 this.comments 배열에서 찾음 */
+      const comment = this.comments.find(comment => comment.commentId === commentId);
+      
+      if (comment) {
+        /* 공감 상태 전환 ex. true -> false, false -> true로 변경 */
+        comment.likeStatus = !comment.likeStatus;
+        this.changeEngagementAction(commentId, "clike");
+        
+        /* 강제로 렌더링 */
+        this.$forceUpdate(); 
       }
     },
+    toggleReplyLike(commentId) { /* 대댓글 공감 상태 변경 */
+    /* commentId와 일치하는 대댓글을 this.replies 배열에서 찾음 */
+      const reply = this.replies.find(reply => reply.commentId === commentId);
+      
+      if (reply) {
+        /* 공감 상태를 전환 */
+        reply.likeStatus = !reply.likeStatus;
+        this.changeEngagementAction(commentId, "clike");
+        
+        /* 강제로 렌더링 */
+        this.$forceUpdate(); 
+      }
+    },
+    toggleComment() { /* 댓글 노출 */
+      /* 댓글 노출 상태를 전환 */
+      this.showComment = !this.showComment;
+    },
+    toggleReply(index) { /* 대댓글 노출 */
+      if (this.comments[index]) {
+        /* 대댓글 노출 상태를 전환 */
+        this.comments[index].showReply = !this.comments[index].showReply;
+      }
+    },
+    changeLikeImg() { /* 게시물 공감 상태 전환 */
+      const postId = this.$route.query.postId;
+      console.log("postId");
+      console.log(postId);
+      /* 공감 상태를 전환 */
+      this.post.liked = !this.post.liked;
+      this.changeEngagementAction(postId, "plike");
+      
+      /* 강제로 렌더링 */
+      this.$forceUpdate(); 
+    },
+    changeScrapImg() { /* 게시물 스크랩 상태 전환 */
+      const postId = this.$route.query.postId;
+      
+      /* 스크랩 상태를 전환 */
+      this.post.scraped = !this.post.scraped;
+      this.changeEngagementAction(postId, "scrap");
+      
+      /* 강제로 렌더링 */
+      this.$forceUpdate();
+    },
+    createComment(postId, parentId) { /* 새 댓글 생성 */
+      /* 댓글 내용과 익명 여부 초기화 */
+      let content;
+      let isAnonymous;
+
+      if (parentId) { /* 부모 댓글 id가 있을 경우, 대댓글 데이터 사용 */
+        content = this.replyData.reply;
+        isAnonymous = this.replyData.isReplyAnonymous ? 1 : 0;
+      } else { /* 부모 댓글 id가 없을 경우, 일반 댓글 데이터 사용 */
+        content = this.commentData.myComment;
+        isAnonymous = this.commentData.isCommentAnonymous ? 1 : 0;
+      }
+
+      /* 서버에 전송할 데이터 */
+      const data = {
+        postId: postId,
+        parentId: parentId,
+        content: content,
+        isAnonymous: isAnonymous,
+      };
+
+      axios
+      .post(`/api/post/createComment`, data, { headers: this.headers })
+      .then((response) => {
+        console.log(response.data);
+        
+        /* 현재 페이지를 리로드 */
+        this.$router.go();
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+    },
+    getCommentsByPost() { /* 댓글 및 대댓글 데이터 가져옴 */
+      const postId = this.$route.query.postId;
+      
+      axios
+      .get(`/api/post/getCommentsByPost/${postId}`, { headers: this.headers })
+      .then(response => {
+        const commentsData = response.data;
+
+        /* commentsData 배열읭 각 요소를 순회하면서 댓글 및 대댓글에 필요한 정보를 추출 */
+        commentsData.forEach(comment => {
+          const commentData = {
+            commentId: comment.commentId,
+            content: comment.content,
+            createdAt: comment.createdAt,
+            liked: comment.liked,
+            likes: comment.likes,
+            writer: comment.writer,
+            childs: [],
+            childCnt: comment.childCnt,
+            showReply: false,
+          };
+        
+          comment.childs.forEach(child => {
+            const replyData = {
+              commentId: child.commentId,
+              content: child.content,
+              createdAt: child.createdAt,
+              liked: child.liked,
+              likes: child.likes,
+              writer: child.writer,
+            };
+        
+            /* commentData.childs 배열에 대댓글 데이터 저장 */
+            commentData.childs.push(replyData);
+            /* this.replies 배열에 대댓글 데이터 저장 */
+            this.replies.push(replyData);
+          });
+        
+          /* this.comments 배열에 댓글 및 대댓글 데이터 저장 */
+          this.comments.push(commentData);
+        });
+
+      })
+      .catch(err => {
+        console.error(err);
+      });
+    },
+    getPostDetail() { /* 게시물의 세부 정보를 가져옴 */
+      const postId = this.$route.query.postId;
+      
+      axios
+      .get(`/api/post/getPostDetail/${postId}`, { headers: this.headers })
+      .then(response => {
+        /* this.post 배열에 게시물의 세부 정보를 저장 */
+        this.post = response.data;
+        console.log(this.post);
+      })
+      .catch(err => {
+        console.error(err);
+      });
+    }
+  },
 };
 </script>
 

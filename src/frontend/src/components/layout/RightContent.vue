@@ -1,39 +1,54 @@
 <template>
   <div class="side-bar">
-    <div class="login-wrap">
+    <div class="login-wrap" v-if="isExistToken">
+        <div class="login-top">
+            <div class="login-desc">
+              <img src="@/assets/images/loginProfile.png" style="width: 64px; height: 64px;" />  
+              <div>{{ user.nickname }}님</div>
+            </div>
+            
+            
+        <button type="button" class="logout-btn" @click="logout">로그아웃</button>
+      </div>
+      <div class="mypage-btn-wrap">
+          <ul>
+              <li><a href="mypage/comment">내 댓글</a></li>
+              <li><a href="mypage/like">내 공감</a></li>
+              <li><a href="mypage/scrap">내 스크랩</a></li>
+          </ul>
+      </div>
+    </div>
+    
+    <div class="login-wrap" v-else>
+        <div class="login-top">
       <div class="login-desc">로그인 후 이용해주세요.</div>
-      <router-link to="/login">
+      </div>
+      <router-link :to="'/login'" class="router-link-class">
         <button type="button" class="login-button">커톡커톡 로그인</button>
       </router-link>
-    </div>
-
-    <div class="category-wrap" style="display: none;">
-      <div class="title-angle-wrap">
-        <h3>카테고리</h3>
-        <span class="angle-icon" @click="toggleAccordion">
-        <img v-bind:src="angleIconSrc" />
-        </span>
-      </div>
-      <AccordionMenu v-if="category.open" :categories="categories" :updateCategory="updateCategory" />
     </div>
 
     <div class="popular-posts">
       <h3>실시간 인기 글</h3>
       <ul>
-        <li v-for="(item, index) in items" :key="index">
+        <li v-for="(popularPost, index) in popularPosts" :key="index">
+		<router-link :to="'/detail?postId=' + popularPost.postId" class="router-link-class">
         <div :class="['num', { 'on': index === 0 }]">
           {{ index + 1 }}
         </div>
 
           <div class="popular-posts-info">
             <div class="title-comment-wrap">
-              <div class="title">{{ item.title }}</div> 
-              <div class="comment">[{{ item.comment }}]</div>
+              <div class="title">{{ popularPost.title }}</div> 
+              <div class="comment">[{{ popularPost.commentCnt }}]</div>
             </div>
             <div class="view-like-wrap">
-              자유게시판 | <img src="@/assets/images/fi-rr-eye.png"/> {{ item.view }} | <img src="@/assets/images/fi-rr-thumbs-up.png"/> {{ item.like }}
+              {{ popularPost.board.boardName }} 
+              <div class="view-wrap"><img src="@/assets/images/fi-rr-eye.png"/> {{ popularPost.views }}</div>
+              <div class="like-wrap"><img src="@/assets/images/fi-rr-thumbs-up.png"/> {{ popularPost.likes }}</div>
             </div>
           </div>
+         </router-link>
         </li>
       </ul>
     </div>
@@ -41,53 +56,84 @@
 </template>
 
 <script>
-import AccordionMenu from '@/components/AccordionMenu.vue';
+import axios from 'axios';
   export default {
     name: 'RightContent',
-    components: {
-      AccordionMenu,
-    },
     data() {
-      return {
-        category: {
-          open: true
-        },
-        items: [
-          {title: '실시간 인기 글 1', comment: '10', view: '3,200', like: '1,213'},
-          {title: '실시간 인기 글 2', comment: '10', view: '3,200', like: '1,213'},
-          {title: '실시간 인기 글 3', comment: '10', view: '3,200', like: '1,213'},
-          {title: '실시간 인기 글 4', comment: '10', view: '3,200', like: '1,213'},
-        ],
-        categories: [
-        {
-          name: '메인 카테고리',
-          expanded: true,
-          items: ['자유게시판', '비밀게시판', '졸업생게시판', '컴과게시판'],
-        },
-        {
-          name: '서브 카테고리',
-          expanded: false,
-          items: ['졸업생게시판', '취준생게시판', '연애게시판'],
-        },
-      ],
+		return {
+			popularPosts: [],
+			isExistToken: false,
+			user: []
+		}
+	},
+    created() {
+    this.getPopularPosts();
+    this.getMember();
+  },
+  mounted() {
+    // 컴포넌트가 마운트될 때 로그인 상태 확인
+    this.checkLoginStatus();
+  },
+  methods: {
+      logout() {
+      var link = "http://" + window.location.host;
+      axios.get(link + "/api/auth/logout", null)
+      .then(response => {
+        console.log("로그아웃");
+        localStorage.clear();
+        this.isExistToken = false;
+
+        this.$router.go();
+
+        console.log(response.data);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+    },
+    checkLoginStatus() {
+      if (localStorage.getItem('token')) {
+        this.isExistToken = true;
+      } else {
+        this.isExistToken = false;
       }
     },
-    methods: {
-      toggleAccordion() {
-        this.category.open = !this.category.open;
-      },
-      updateCategory(index) {
-        this.categories[index].expanded = !this.categories[index].expanded;
-        this.categories = [...this.categories];
-      },
+    getPopularPosts() {
+      const token = localStorage.getItem('token');
+      var link = 'http://' + window.location.host;
+      var headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      axios
+        .get(link + '/api/main/getPopularPosts', { headers: headers })
+        .then(response => {
+          this.popularPosts = response.data;
+        })
+        .catch(err => {
+          console.log(err);
+        });
     },
-    computed: {
-      angleIconSrc() {
-        return this.category.open
-          ? require('@/assets/images/fi-rr-angle-small-up.png')
-          : require('@/assets/images/fi-rr-angle-small-down.png');
-      },
-    },
+    getMember() {
+        const token = localStorage.getItem('token');
+      var link = 'http://' + window.location.host;
+      var headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+      
+        axios
+        .get(link + '/api/main/getMember', { headers: headers })
+        .then(response => {
+          this.user = response.data;
+          console.log(this.user);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+  },
   }
 </script>
 

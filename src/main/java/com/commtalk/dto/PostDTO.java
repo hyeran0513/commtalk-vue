@@ -2,7 +2,6 @@ package com.commtalk.dto;
 
 import java.text.SimpleDateFormat;
 
-import com.commtalk.model.Attachment;
 import com.commtalk.model.Post;
 
 import lombok.Data;
@@ -21,9 +20,10 @@ public class PostDTO {
 	private MemberSimpleDTO author;
 	private BoardSimpleDTO board;
 	private int commentCnt;
-//	private AttachmentSimpleDTO thumbnail;
+	private boolean isLiked;
+	private boolean isScraped;
 	
-	public PostDTO(Post post) {
+	public PostDTO(Post post, boolean isLiked, boolean isScraped) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); // 날짜 포맷 지정
 		
 		this.postId = post.getId();
@@ -40,9 +40,8 @@ public class PostDTO {
 		}
 		this.board = new BoardSimpleDTO(post.getBoard());
 		this.commentCnt = post.getComments().size();
-//		if (thumbnail != null) {
-//			this.thumbnail = new AttachmentSimpleDTO(thumbnail);
-//		}
+		this.isLiked = isLiked;
+		this.isScraped = isScraped;
 	}
-	
+
 }
