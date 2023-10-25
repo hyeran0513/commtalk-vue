@@ -52,27 +52,8 @@ const routes = [
         path: 'scrap',
         component: () => import('../views/mypage/ScrapMypage.vue')
       },
-      {
-        path: 'report',
-        component: () => import('../views/later/ReportMypage.vue')
-      }, 
     ]
   },
-  {
-    path: '/admin',
-    name: 'admin',
-    children: [
-      {
-        path: 'board',
-        component: () => import('../views/later/BoardAdmin.vue')
-      }, 
-      {
-        path: 'report',
-        component: () => import('../views/later/ReportAdmin.vue')
-      }, 
-      
-    ]
-  }
 ]
 
 const router = createRouter({
