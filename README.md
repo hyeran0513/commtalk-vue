@@ -12,7 +12,5 @@
 - 이유리: db관리 및 백엔드 <br/><br/>
 
 
-### 미리보기
-![image 1](https://github.com/hyeran0513/commtalk/assets/69576326/37d942e1-0fce-406a-aabc-b888e2200c80)
-![image 2](https://github.com/hyeran0513/commtalk/assets/69576326/af6a41df-7f93-4e9d-9f84-0e34e3adbb67)
-![image 3](https://github.com/hyeran0513/commtalk/assets/69576326/b0b34ccd-c3fb-48f4-a048-9dc1d8673216)
+### 시연영상
+https://www.youtube.com/watch?v=2CtmzoWrwbc
