@@ -14,7 +14,3 @@
 
 ### 시연영상
 https://www.youtube.com/watch?v=2CtmzoWrwbc
-
-
-## 프론트엔드 코드 위치
-src/frontend
