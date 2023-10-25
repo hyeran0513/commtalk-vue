@@ -1,7 +1,7 @@
 <template>
   <div class="edit-view">
     <HeaderLayout />
-    <SubHeader/>
+    <SubHeader />
 
     <div class="full-container">
       <strong class="board-name">{{ boardName }}</strong>
@@ -29,7 +29,7 @@
                 <button class="remove-hashtag-btn" @click="removeHashtag(index)">
                   <img src="@/assets/images/fi-rr-cross-small.png" style="width: 12px; height: 12px;" />
                 </button>
-              </div> 
+              </div>
               # <input type="text" placeholder="태그 입력 (최대 20개)" v-model="newHashtag" @keyup.enter="addHashtag" />
             </div>
           </div>
@@ -37,30 +37,55 @@
 
         <div class="detail-btn-wrap">
           <div class="anonymous-file-wrap">
-            <div class="custom-checkbox">
-              <input type="checkbox" id="customCheckbox">
-              <label for="customCheckbox">익명</label>
-          </div>
-            <input type="file" ref="fileInput" multiple @change="handleFileChange" />
+            <div class="checkbox-container">
+              <input
+                type="checkbox"
+                :id="'checkbox01'"
+                v-model="isAnonymous"
+              />
+              <label :for="'checkbox01'">
+                <span class="checkbox-icon"></span>
+                익명
+              </label>
+            </div>
+            
+            <div class="checkbox-container">
+              <input
+                type="checkbox"
+                :id="'checkbox02'"
+                v-model="isCommentable"
+              />
+              <label :for="'checkbox02'">
+                <span class="checkbox-icon"></span>
+                댓글 허용
+              </label>
+            </div>
+
+            <label for="file">
+              <div class="btn-upload"><img src="@/assets/images/fi-rr-cloud-upload.png" style="width: 14px; height: 14px;"/>파일 업로드하기</div>
+            </label>
+            <input type="file" id="file" ref="fileInput" multiple @change="handleFileChange" />
           </div>
 
           <div class="btn-wrap">
-            <button type="button" class="cancel-btn">취소</button>
+            <router-link :to="'/list?boardId=' + boardId" class="router-link-class">
+              <button type="button" class="cancel-btn">취소</button>
+            </router-link>
             <button type="submit" class="register-btn" @click="submitPost">등록</button>
           </div>
         </div>
       </div>
     </div>
-    <FooterLayout/>
+    <FooterLayout />
   </div>
 </template>
 
 <script>
 import axios from 'axios';
 
-import HeaderLayout from "@/components/layout/HeaderLayout.vue";
-import SubHeader from "@/components/layout/SubHeader.vue";
-import FooterLayout from "@/components/layout/FooterLayout.vue";
+import HeaderLayout from "@/components/layout/common/HeaderLayout.vue";
+import SubHeader from "@/components/layout/common/SubHeader.vue";
+import FooterLayout from "@/components/layout/common/FooterLayout.vue";
 
 export default {
   name: 'EditView',
@@ -72,7 +97,9 @@ export default {
       newHashtag: '',
       hashtags: [],
       boardName: '',
-      isAnonymous: false,
+      isAnonymous: true,
+      isCommentable: true,
+      boardId: this.$route.query.boardId
     };
   },
   created() {
@@ -85,9 +112,10 @@ export default {
     FooterLayout
   },
   methods: {
-    setupHeaders() { /* http 요청 헤더를 설정하고 엔드포인트에 대한 인증 토큰을 포함 */
+    setupHeaders() {
+      /* http 요청 헤더를 설정하고 엔드포인트에 대한 인증 토큰을 포함 */
       const token = localStorage.getItem('token');
-      
+
       this.link = 'http://' + window.location.host;
       this.headers = {
         'Authorization': `Bearer ${token}`,
@@ -96,7 +124,7 @@ export default {
     },
     getBoardName() { /* 게시판 이름 가져옴 */
       const boardId = this.$route.query.boardId;
-      
+
       axios
         .get(`/api/post/getBoard/${boardId}`, { headers: this.headers })
         .then(response => {
@@ -115,13 +143,13 @@ export default {
       }
     },
     removeHashtag(index) { /* 선택한 해시태그 제거 */
-    /* 배열에서 선택한 해시태그 제거 */
+      /* 배열에서 선택한 해시태그 제거 */
       this.hashtags.splice(index, 1);
     },
     handleFileChange(event) { /* 파일 선택(input[type="file"])이 변경되었을 때 호출 */
       /* 선택된 파일 목록을 가져옴 */
       const files = event.target.files;
-      
+
       for (let i = 0; i < files.length; i++) {
         /* 현재 파일을 가져옴 */
         const file = files[i];
@@ -145,67 +173,76 @@ export default {
       }
     },
     removeImage(index) { /* 이미지 미리보기에서 이미지 제거 */
-    /* 선택한 이미지를 배열에서 제거하고 반환 */
+      /* 선택한 이미지를 배열에서 제거하고 반환 */
       const removedImage = this.imagePreviews.splice(index, 1)[0];
-      
+
       if (removedImage && removedImage.file) {
         /* 이미지 URL 해제 */
         URL.revokeObjectURL(removedImage.previewURL);
       }
     },
-    submitPost() { /* 작성한 게시글 서버로 전송 */
+    submitPost() {
+      /* 작성한 게시글 서버로 전송 */
+      const boardId = this.$route.query.boardId;
+
       const data = {
-        title: this.title,
-        content: this.content,
-        hashtags: this.hashtags,
-        isAnonymous: this.isAnonymous,
-        images: []
+        "boardId": boardId,
+        "title": this.title,
+        "content": this.content,
+        "isAnonymous": this.isAnonymous ? 1 : 0,
+        "isCommentable": this.isCommentable ? 1 : 0,
+        "hashtags": this.hashtags
       };
-    
-      /* 이미지를 Base64로 변환하여 데이터에 추가 */
-      for (const image of this.imagePreviews) {
-        this.uploadImageUrl(image.file)
-          .then(base64Data => {
-            data.images.push(base64Data);
-    
-            if (data.images.length === this.imagePreviews.length) {
-              console.log("Data to be submitted:", data);
-              /* axios로 서버에 전달 */
-            }
-          })
-          .catch(error => {
-            console.error("Error converting image to Base64:", error);
-          });
-      }
-    },
-    uploadImageUrl(imageFile) { /* 이미지 파일을 Base64로 변환하여 Promise로 반환 */
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-    
-        reader.onload = () => {
-          /* Base64 데이터 부분 추출 */
-          const base64Data = reader.result.split(',')[1];
+
+      axios
+        .post(`/api/post/createPost`, data, { headers: this.headers })
+        .then(response => {
+          console.log(response.data);
           
-          /* Base64 데이터를 Promise로 반환 */
-          resolve(base64Data);
-        };
-    
-        reader.onerror = (error) => {
-          /* 에러가 발생한 경우 Promise를 거부 */
-          reject(error);
-        };
-    
-        /* 이미지 파일을 Base64로 변환하여 읽음 */
-        reader.readAsDataURL(imageFile);
-      });
+          this.uploadImageUrl(response.data.postId);
+          
+          this.$router.push(`/list?boardId=${boardId}`);
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    },
+    uploadImageUrl(postId) {
+      const formData = new FormData();
+
+for (const image of this.imagePreviews) {
+  formData.append('images', image.file);
+}
+
+if (formData.has('images')) { // 이미지가 있는 경우에만 요청을 보냅니다.
+  const config = {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    },
+  };
+
+  /* 파일 업로드 요청 보내기 */
+  axios
+    .post(`/api/file/upload/${postId}`, formData, config)
+    .then((response) => {
+      console.log('파일 업로드 성공:', response.data);
+    })
+    .catch((err) => {
+      console.error('파일 업로드 실패:', err);
+    });
+} else {
+  console.log('이미지가 없어서 파일 업로드 요청을 보내지 않습니다.');
+}
+
     }
   }
 };
 </script>
 
 <style lang="scss">
-  @import "@/assets/scss/layout1.scss";
-  @import "@/assets/scss/pattern.scss";
+  @import "@/assets/scss/pattern/pattern.scss";
+  @import "@/assets/scss/pattern/layout.scss";
   @import "@/assets/scss/edit.scss";
   @import "@/assets/scss/common.scss";
 </style>

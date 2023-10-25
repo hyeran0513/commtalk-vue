@@ -38,23 +38,23 @@ const routes = [
     children: [
       {
         path: 'info',
-        component: () => import('../views/InfoMypage.vue')
+        component: () => import('../views/mypage/InfoMypage.vue')
       }, 
       {
         path: 'comment',
-        component: () => import('../views/CommentMypage.vue')
+        component: () => import('../views/mypage/CommentMypage.vue')
       },
       {
         path: 'like',
-        component: () => import('../views/LikeMypage.vue')
+        component: () => import('../views/mypage/LikeMypage.vue')
       },
       {
         path: 'scrap',
-        component: () => import('../views/ScrapMypage.vue')
+        component: () => import('../views/mypage/ScrapMypage.vue')
       },
       {
         path: 'report',
-        component: () => import('../views/ReportMypage.vue')
+        component: () => import('../views/later/ReportMypage.vue')
       }, 
     ]
   },
@@ -64,11 +64,11 @@ const routes = [
     children: [
       {
         path: 'board',
-        component: () => import('../views/BoardAdmin.vue')
+        component: () => import('../views/later/BoardAdmin.vue')
       }, 
       {
         path: 'report',
-        component: () => import('../views/ReportAdmin.vue')
+        component: () => import('../views/later/ReportAdmin.vue')
       }, 
       
     ]

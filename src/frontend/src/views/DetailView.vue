@@ -13,7 +13,7 @@
                 <strong class="title">{{ post.title }}</strong>
               </div>
     
-              <div class="msg-notice-wrap">
+              <div class="msg-notice-wrap" style="display: none;">
                 <span>쪽지</span> 
                 <span>신고</span>
               </div>
@@ -31,12 +31,16 @@
             <div class="hashtags">
               <div class="hashtag" v-for="(tag, index) in post.hashtags" :key="index">#{{ tag.hashtag }}</div>
             </div>
+            
+            <div class="img-wrap">
+              <img v-for="(imageurl, index) in post.attachments" :key="index" :src="getImageUrl(imageurl.fileName)" alt="Image" style="margin-bottom: 20px; width: 140px; height: 100px; border: 1px solid var(--gray40); border-radius: 10px;" />
+            </div>
           </div>
         </div>
     
         <div class="other-comment-wrap">
           <div class="activity-wrap" :class="{ 'no-margin' : showComment }">
-            <div class="comment-btn">
+            <div class="comment-btn" v-if="commentOpen">
               <img style="width: 12px; height: 12px;" src="@/assets/images/fi-rr-comment.png"/>
               댓글 {{ post.commentCnt }}
               <div class="hr">|</div> 
@@ -72,7 +76,7 @@
                     <span style="margin-left: 4px;">{{ comment.createdAt}}</span>
                   </div>
 
-                  <div class="msg-notice-wrap">
+                  <div class="msg-notice-wrap" style="display: none;">
                     <span>쪽지</span> 
                     <span>신고</span>
                   </div>
@@ -91,7 +95,7 @@
                     <div class="like-btn" @click="toggleLike(comment.commentId)">
                       <img
                         style="width: 14px; height: 14px;"
-                        :src="comment.likeStatus ? likeImgActive : likeImg"
+                        :src="comment.liked ? likeImgActive : likeImg"
                       />
                       공감하기 {{ comment.likes }}
                     </div>
@@ -135,7 +139,7 @@
                           <span style="margin-left: 4px;">{{ reply.createdAt }}</span>
                         </div>
     
-                        <div class="msg-notice-wrap">
+                        <div class="msg-notice-wrap" style="display: none;">
                           <span>쪽지</span> 
                           <span>신고</span>
                         </div>
@@ -163,7 +167,11 @@
             </div>
         </div>
 
-        <div class="my-comment-wrap">
+        <div v-if="!commentOpen" class="commentDisableDesc">
+          댓글 기능이 비활성화된 게시글입니다.
+        </div>
+        
+        <div class="my-comment-wrap" v-if="commentOpen">
           <textarea v-model="commentData.myComment" class="my-comment" placeholder="댓글을 입력하세요."></textarea>
           <div class="my-comment-btn-wrap">
             <div class="file-anonymous-wrap">
@@ -185,9 +193,11 @@
           </div>
         </div>
 
-        <a :href="'/list?boardId=' + boardId">
-          <button type="button" class="list-btn">목록보기</button>
-        </a>
+        <div class="btn-wrap">
+          <a :href="'/list?boardId=' + boardId">
+            <button type="button" class="list-btn"><img src="@/assets/images/fi-rr-list.png" style="width: 14px; heigth: 14px;" />목록보기</button>
+          </a>
+        </div>
       </div>
     </div>
     <FooterLayout/>
@@ -197,9 +207,9 @@
 <script>
 import axios from 'axios';
 
-import HeaderLayout from "@/components/layout/HeaderLayout.vue";
-import SubHeader from "@/components/layout/SubHeader.vue";
-import FooterLayout from "@/components/layout/FooterLayout.vue";
+import HeaderLayout from "@/components/layout/common/HeaderLayout.vue";
+import SubHeader from "@/components/layout/common/SubHeader.vue";
+import FooterLayout from "@/components/layout/common/FooterLayout.vue";
 
 export default {
   name: 'DetailView',
@@ -212,6 +222,7 @@ export default {
     return {
       headers: [],
       link: '',
+      commentOpen: false,
       likeImg: require('@/assets/images/fi-rr-thumbs-up.png'),
       likeImgActive: require('@/assets/images/fi-sr-thumbs-up.png'),
       scrapImg: require('@/assets/images/fi-rr-bookmark.png'),
@@ -226,11 +237,11 @@ export default {
       replies: [],
       commentData: {
         myComment: '',
-        isCommentAnonymous: false
+        isCommentAnonymous: true
       },
       replyData: {
         reply: '',
-        isReplyAnonymous: false
+        isReplyAnonymous: true
       }
     };
   },
@@ -265,6 +276,8 @@ export default {
         - refId: postId
         - actionType: plike
       */
+      
+      refId = eval(refId);
       
       const data = {
         "refId": refId,
@@ -429,11 +442,24 @@ export default {
         /* this.post 배열에 게시물의 세부 정보를 저장 */
         this.post = response.data;
         console.log(this.post);
+        
+        if (this.post.commentable) {
+          this.commentOpen = true;
+        }
+        
+        this.boardId = this.post.board.boardId;
       })
       .catch(err => {
         console.error(err);
       });
-    }
+    },
+    getImageUrl(fileName) { /* 이미지 URL 가져옴 */
+      const baseUrl = 'http://' + window.location.host;
+      const apiUrl = '/api/file/load/' + fileName;
+      const url = new URL(apiUrl, baseUrl);
+      
+      return url.href;
+    },
   },
 };
 </script>

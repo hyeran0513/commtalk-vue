@@ -6,9 +6,9 @@
     <div class="full-container">
       <div class="sub-top-wrap">
         <strong class="board-name">{{ boardName }}</strong>
-        <div class="search-wrap">
+        <div class="search-wrap" v-if="!isAllList">
           <input type="search" v-model="keyword" placeholder="내용을 입력해주세요." />
-          <img src="@/assets/images/fi-rr-search.png" @click="fetchPosts" />
+          <img src="@/assets/images/list-search.png" @click="fetchPosts" />
         </div>
       </div>
 
@@ -72,7 +72,7 @@
 
       <div class="btn-wrap">
         <router-link :to="'/edit?boardId=' + boardId" class="router-link-class">
-          <button class="write-btn">글쓰기</button>
+          <button class="write-btn"><img src="@/assets/images/fi-rr-edit.png" style="width: 14px; height: 14px;" />글쓰기</button>
         </router-link>
       </div>
     </div>
@@ -83,9 +83,9 @@
 <script>
 import axios from 'axios';
 
-import HeaderLayout from '@/components/layout/HeaderLayout.vue';
-import SubHeader from '@/components/layout/SubHeader.vue';
-import FooterLayout from '@/components/layout/FooterLayout.vue';
+import HeaderLayout from '@/components/layout/common/HeaderLayout.vue';
+import SubHeader from '@/components/layout/common/SubHeader.vue';
+import FooterLayout from '@/components/layout/common/FooterLayout.vue';
 
 export default {
   name: 'ListView',
@@ -169,45 +169,36 @@ export default {
           console.error(err);
         });
     },
-    fetchData() { /* 데이터 조회 함수: 전체 게시글 검색 및 게시글 리스트 조회 */
+    fetchData() {
       const boardId = this.$route.query.boardId;
       const commonKeyword = this.$route.query.commonKeyword;
-  
-      console.log("pageNumber" + this.pageNumber);
-      const data = {
-          params: {
-              page: this.pageNumber,
-              size: 10
-          }
+    
+      let url = "";
+      const params = {
+        page: this.pageNumber,
+        size: 10
       };
-  
-      var url = "";
-  
-      if (commonKeyword) { /* 헤더에 있는 검색창에서 검색 시, 공통 검색어 리스트 조회 */
-          url = "/api/common/getPosts/" + commonKeyword;
-          
-          /* 현재 게시판 이름을 "전체"로 설정 */
-          this.boardName = "전체";
-          /* 전체 게시글 리스트 플래그 활성화 */
-          this.isAllList = true;
-      } 
-  
-      if (boardId) { /* 해당 게시글 리스트 조회 */
-          url = "/api/post/getPostsByBoard/" + boardId;
+    
+      if (commonKeyword) {
+        url = `/api/common/getPosts/${commonKeyword}`;
+        this.boardName = "전체";
+        this.isAllList = true;
       }
-  
+    
+      if (boardId) {
+        url = `/api/post/getPostsByBoard/${boardId}`;
+      }
+    
       axios
-          .get(url, data, { headers: this.headers })
-          .then(response => {
-              console.log(response.data.posts);
-              this.boards = response.data.posts;
-              
-              /* 전체 페이지 수 할당 */
-              this.totalPages = response.data.totalPages;
-          })
-          .catch(err => {
-              console.error(err);
-          });
+        .get(url, { params, headers: this.headers })
+        .then(response => {
+          this.boards = response.data.posts;
+          console.log(this.boards);
+          this.totalPages = response.data.totalPages;
+        })
+        .catch(err => {
+          console.error(err);
+        });
     },
     fetchPosts() { /* 게시글 리스트 내에서 검색 시, 실행되는 함수 */
       if (!this.keyword) return;
@@ -250,5 +241,5 @@ export default {
 
 <style scoped lang="scss">
 @import "@/assets/scss/list.scss";
-@import "@/assets/scss/pattern.scss";
+@import "@/assets/scss/pattern/pattern.scss";
 </style>

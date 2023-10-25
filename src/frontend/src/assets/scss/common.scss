@@ -1,8 +1,8 @@
 * {
-    margin: 0;
-    padding: 0;
-    text-decoration: none;
-    list-style: none;
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+  list-style: none;
 }
 
 /* checkbox 커스텀 */
@@ -10,7 +10,6 @@
   position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
 
   input[type="checkbox"] {
     position: absolute;
@@ -26,7 +25,7 @@
         width: 16px;
         height: 16px;
         background-color: #fff;
-        border: 1.4px solid var(--gray40);
+        border: 1px solid var(--gray40);
         border-radius: 4px;
         margin-right: 6px;
         display: flex;
