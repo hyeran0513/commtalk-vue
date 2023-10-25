@@ -1,4 +1,4 @@
-# frontend 모야
+# frontend
 
 ## Project setup
 ```
