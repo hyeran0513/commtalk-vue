@@ -1,16 +1,22 @@
 ### commtalk - 커뮤니티
 
-### 사용 기술 스택
+### <b>2024.06.19(수)부터 nuxt로 리팩토링 예정</b> 🎉🎉🎉
 
-- front-end: vue, scss
-- back-end: spring boot
-- db: jpa, mysql
+### 참여 인원 😺
 
-### 작업 인원
+|김혜란(본인)|이유리|
+|------|---|
+|DB설계|DB설계 및 관리|
+|프론트엔드|백엔드|
+|UI&UX||
 
-- 김혜란: ui 구성 및 프론트엔드
-- 이유리: db관리 및 백엔드 <br/><br/>
+### 사용 기술 스택 🛠️
 
+|front-end|back-end|DB|
+|---|---|---|
+|vue2(Options API)|spring boot|jpa|
+|scss||mysql|
+|UI&UX|||
 
-### 시연영상
+### 시연영상 🎞️
 https://www.youtube.com/watch?v=2CtmzoWrwbc
